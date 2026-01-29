@@ -22,20 +22,30 @@ func booksHandler(w http.ResponseWriter, req *http.Request) {
 
 	case "POST":
 		var book Book
-		json.NewDecoder(req.Body).Decode(&book)
+		err := json.NewDecoder(req.Body).Decode(&book)
+
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		}
+
 		books = append(books, book)
 
 	case "DELETE":
-		var book Book
-		json.NewDecoder(req.Body).Decode(&book)
+		var bookID string
+		err := json.NewDecoder(req.Body).Decode(&bookID)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
 
-		var updated []Book
+		i := 0
 		for _, b := range books {
-			if b.ID != book.ID {
-				updated = append(updated, b)
+			if b.ID != bookID {
+				books[i] = b
+				i++
 			}
 		}
-		books = updated
+		books = books[:i]
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
